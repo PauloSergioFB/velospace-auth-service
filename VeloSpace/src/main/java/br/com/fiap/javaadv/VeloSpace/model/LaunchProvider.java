@@ -27,7 +27,7 @@ public class LaunchProvider {
     @Column(name = "corporate_name", nullable = false, length = 255)
     private @Getter @Setter String corporateName;
 
-    @OneToOne(cascade = CascadeType.PERSIST)
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_account_id", nullable = false, unique = true)
     private @Getter @Setter UserAccount userAccount;
 

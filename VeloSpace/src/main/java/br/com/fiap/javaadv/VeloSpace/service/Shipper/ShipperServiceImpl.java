@@ -12,6 +12,7 @@ import br.com.fiap.javaadv.VeloSpace.infrastructure.enums.ShipperType;
 import br.com.fiap.javaadv.VeloSpace.infrastructure.exceptions.FieldValidationException;
 import br.com.fiap.javaadv.VeloSpace.infrastructure.exceptions.ForbiddenException;
 import br.com.fiap.javaadv.VeloSpace.infrastructure.exceptions.NotFoundException;
+import br.com.fiap.javaadv.VeloSpace.infrastructure.message.publisher.ShipperEventPublisher;
 import br.com.fiap.javaadv.VeloSpace.infrastructure.security.JwtUserData;
 import br.com.fiap.javaadv.VeloSpace.model.Shipper;
 import br.com.fiap.javaadv.VeloSpace.model.UserAccount;
@@ -32,6 +33,8 @@ public class ShipperServiceImpl implements ShipperService<Shipper, Long> {
     private final UserRoleService<UserRole, Long> userRoleService;
 
     private final PasswordEncoder passwordEncoder;
+
+    private final ShipperEventPublisher shipperEventPublisher;
 
     private void validateShipperOwner(JwtUserData authUser, Shipper shipper) {
         if (!Objects.equals(authUser.userId(), shipper.getUserAccount().getUserAccountId())) {
@@ -128,7 +131,11 @@ public class ShipperServiceImpl implements ShipperService<Shipper, Long> {
         userAccount.setHashedPassword(passwordEncoder.encode(userAccount.getHashedPassword()));
         shipper.setUserAccount(userAccount);
 
-        return shipperRepository.save(shipper);
+        Shipper newShipper = shipperRepository.save(shipper);
+
+        shipperEventPublisher.publishCreated(newShipper);
+
+        return newShipper;
     }
 
     @Override
@@ -197,6 +204,7 @@ public class ShipperServiceImpl implements ShipperService<Shipper, Long> {
         Shipper shipper = findByIdOrThrow(id);
         validateShipperOwner(authUser, shipper);
         shipperRepository.delete(shipper);
+        shipperEventPublisher.publishDeleted(id);
     }
 
 }

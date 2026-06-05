@@ -20,6 +20,11 @@ spring:
 
   jackson:
     property-naming-strategy: SNAKE_CASE
+  
+  activemq:
+    broker-url: ${ACTIVEMQ_BROKER_URL}
+    user: ${ACTIVEMQ_USER}
+    password: ${ACTIVEMQ_PASSWORD}
 
 jwt:
   secret: ${JWT_SECRET}
@@ -47,4 +52,3 @@ springdoc:
     operations-sorter: alpha
     display-request-duration: true
     filter: true
-    

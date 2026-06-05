@@ -5,6 +5,7 @@ import br.com.fiap.javaadv.VeloSpace.infrastructure.enums.Role;
 import br.com.fiap.javaadv.VeloSpace.infrastructure.exceptions.FieldValidationException;
 import br.com.fiap.javaadv.VeloSpace.infrastructure.exceptions.ForbiddenException;
 import br.com.fiap.javaadv.VeloSpace.infrastructure.exceptions.NotFoundException;
+import br.com.fiap.javaadv.VeloSpace.infrastructure.message.publisher.LaunchProviderEventPublisher;
 import br.com.fiap.javaadv.VeloSpace.infrastructure.security.JwtUserData;
 import br.com.fiap.javaadv.VeloSpace.model.LaunchProvider;
 import br.com.fiap.javaadv.VeloSpace.model.UserAccount;
@@ -34,6 +35,8 @@ public class LaunchProviderServiceImpl implements LaunchProviderService<LaunchPr
 
     private final PasswordEncoder passwordEncoder;
 
+    private final LaunchProviderEventPublisher launchProviderEventPublisher;
+
     private void validateLaunchProviderOwner(JwtUserData authUser, LaunchProvider launchProvider) {
         if (!Objects.equals(authUser.userId(), launchProvider.getUserAccount().getUserAccountId())) {
             throw new ForbiddenException(
@@ -49,7 +52,8 @@ public class LaunchProviderServiceImpl implements LaunchProviderService<LaunchPr
     }
 
     @Override
-    public Page<LaunchProvider> findAll(int page, int items, LaunchProviderSortField sortBy, String direction) {
+    public Page<LaunchProvider> findAll(
+            int page, int items, LaunchProviderSortField sortBy, String direction) {
         Sort sort = direction.equalsIgnoreCase("desc")
                 ? Sort.by(sortBy.name()).descending()
                 : Sort.by(sortBy.name()).ascending();
@@ -83,7 +87,11 @@ public class LaunchProviderServiceImpl implements LaunchProviderService<LaunchPr
         userAccount.setHashedPassword(passwordEncoder.encode(userAccount.getHashedPassword()));
         launchProvider.setUserAccount(userAccount);
 
-        return launchProviderRepository.save(launchProvider);
+        LaunchProvider newLaunchProvider = launchProviderRepository.save(launchProvider);
+
+        launchProviderEventPublisher.publishCreated(newLaunchProvider);
+
+        return newLaunchProvider;
     }
 
     @Override
@@ -127,7 +135,8 @@ public class LaunchProviderServiceImpl implements LaunchProviderService<LaunchPr
     }
 
     @Override
-    public void updatePasswordById(Long id, String currentPassword, String newPassword, JwtUserData authUser) {
+    public void updatePasswordById(
+            Long id, String currentPassword, String newPassword, JwtUserData authUser) {
         LaunchProvider existing = findByIdOrThrow(id);
 
         validateLaunchProviderOwner(authUser, existing);
@@ -152,6 +161,7 @@ public class LaunchProviderServiceImpl implements LaunchProviderService<LaunchPr
         LaunchProvider launchProvider = findByIdOrThrow(id);
         validateLaunchProviderOwner(authUser, launchProvider);
         launchProviderRepository.delete(launchProvider);
+        launchProviderEventPublisher.publishDeleted(id);
     }
 
 }

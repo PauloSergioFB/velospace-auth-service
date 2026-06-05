@@ -27,8 +27,6 @@ public class ShipperApiController {
 
     private final ShipperService<Shipper, Long> shipperService;
 
-    // private final SatelliteService<Satellite, Long> satelliteService;
-
     @GetMapping("/me")
     @Operation(summary = "Buscar Shipper do usuário", description = "Retorna informações completas do Shipper vinculado ao usuário autenticado.")
     public ResponseEntity<ShipperResponseDTO> findByMe(
@@ -47,59 +45,6 @@ public class ShipperApiController {
         Shipper shipper = shipperService.findById(id, authUser);
         return ResponseEntity.ok(ShipperResponseDTO.from(shipper));
     }
-
-    // @GetMapping("/hateoas/{id}")
-    // @Operation(summary = "Buscar Shipper com HATEOAS", description = "Retorna o
-    // Shipper por ID com links HATEOAS. Respostas: 200 OK (dados e links), 401 Não
-    // autenticado, 403 Acesso negado, 404 Shipper não encontrado.")
-    // public EntityModel<ShipperResponseDTO> findByIdHateoas(
-    // @PathVariable Long id,
-    // @AuthenticationPrincipal JwtUserData authUser) {
-
-    // Shipper shipper = shipperService.findById(id, authUser);
-    // return EntityModel.of(
-    // ShipperResponseDTO.from(shipper),
-
-    // linkTo(methodOn(ShipperApiController.class)
-    // .findByIdHateoas(id, null)).withSelfRel(),
-
-    // linkTo(methodOn(ShipperApiController.class)
-    // .findById(id, null)).withRel("shipper"),
-
-    // linkTo(methodOn(ShipperApiController.class)
-    // .findByMe(null)).withRel("me"),
-
-    // linkTo(methodOn(ShipperApiController.class)
-    // .findAllShipperSatellites(
-    // id,
-    // 0, 10, SatelliteSortField.satelliteId, "asc",
-    // null))
-    // .withRel("satellites"),
-
-    // linkTo(methodOn(ShipperApiController.class)
-    // .updateById(id, null, null)).withRel("update"),
-
-    // linkTo(methodOn(ShipperApiController.class)
-    // .deleteById(id, null)).withRel("delete"));
-    // }
-
-    // @GetMapping("/{id}/satellites")
-    // @Operation(summary = "Listar satellites do Shipper", description = "Retorna
-    // uma página com os satellites associados ao Shipper identificado pelo ID.")
-    // public ResponseEntity<PageResponseDTO<SatelliteItemResponseDTO>>
-    // findAllShipperSatellites(
-    // @PathVariable Long id,
-    // @RequestParam(defaultValue = "0") int page,
-    // @RequestParam(defaultValue = "10") int items,
-    // @RequestParam(defaultValue = "operatorId") SatelliteSortField sortBy,
-    // @RequestParam(defaultValue = "asc") String direction,
-    // @AuthenticationPrincipal JwtUserData authUser) {
-
-    // Page<Satellite> satellites = satelliteService.findAllByShipperId(
-    // id, page, items, sortBy, direction, authUser);
-    // return ResponseEntity.ok(PageResponseDTO.from(
-    // satellites.map(SatelliteItemResponseDTO::from)));
-    // }
 
     @PostMapping
     @Operation(summary = "Criar um novo Shipper", description = "Recebe os dados de um Shipper e o cria no sistema.")

@@ -37,8 +37,6 @@ public class LaunchProviderApiController {
 
     private final OperatorService<Operator, Long> operatorService;
 
-    // private final SatelliteService<Satellite, Long> satelliteService;
-
     @GetMapping("/me")
     @Operation(summary = "Buscar meu Launch Provider", description = "Retorna os dados do Launch Provider vinculado ao usuário autenticado.")
     public ResponseEntity<LaunchProviderResponseDTO> findByMe(
@@ -88,25 +86,6 @@ public class LaunchProviderApiController {
         return ResponseEntity.ok(PageResponseDTO.from(
                 operators.map(OperatorItemResponseDTO::from)));
     }
-
-    // @GetMapping("/{id}/satellites")
-    // @Operation(summary = "Listar satélites do Launch Provider", description =
-    // "Retorna uma página com os satélites associados ao Launch Provider informado
-    // pelo ID.")
-    // public ResponseEntity<PageResponseDTO<SatelliteItemResponseDTO>>
-    // findAllLaunchProviderSatellites(
-    // @PathVariable Long id,
-    // @RequestParam(defaultValue = "0") int page,
-    // @RequestParam(defaultValue = "10") int items,
-    // @RequestParam(defaultValue = "operatorId") SatelliteSortField sortBy,
-    // @RequestParam(defaultValue = "asc") String direction,
-    // @AuthenticationPrincipal JwtUserData authUser) {
-
-    // Page<Satellite> satellites = satelliteService.findAllByLaunchProviderId(
-    // id, page, items, sortBy, direction, authUser);
-    // return ResponseEntity.ok(PageResponseDTO.from(
-    // satellites.map(SatelliteItemResponseDTO::from)));
-    // }
 
     @PostMapping
     @Operation(summary = "Criar um novo Launch Provider", description = "Recebe os dados de um Launch Provider e o cria no sistema.")

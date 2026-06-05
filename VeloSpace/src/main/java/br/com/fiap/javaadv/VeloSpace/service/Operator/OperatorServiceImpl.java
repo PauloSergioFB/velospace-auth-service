@@ -6,6 +6,7 @@ import br.com.fiap.javaadv.VeloSpace.infrastructure.exceptions.BusinessRuleExcep
 import br.com.fiap.javaadv.VeloSpace.infrastructure.exceptions.FieldValidationException;
 import br.com.fiap.javaadv.VeloSpace.infrastructure.exceptions.ForbiddenException;
 import br.com.fiap.javaadv.VeloSpace.infrastructure.exceptions.NotFoundException;
+import br.com.fiap.javaadv.VeloSpace.infrastructure.message.publisher.OperatorEventPublisher;
 import br.com.fiap.javaadv.VeloSpace.infrastructure.security.JwtUserData;
 import br.com.fiap.javaadv.VeloSpace.model.LaunchProvider;
 import br.com.fiap.javaadv.VeloSpace.model.Operator;
@@ -42,6 +43,8 @@ public class OperatorServiceImpl implements OperatorService<Operator, Long> {
     private final UserRoleService<UserRole, Long> userRoleService;
 
     private final PasswordEncoder passwordEncoder;
+
+    private final OperatorEventPublisher operatorEventPublisher;
 
     private void validateLaunchProviderOwner(JwtUserData authUser, Operator operator) {
         Long launchProviderUserAccountId = operator.getLaunchProvider().getUserAccount().getUserAccountId();
@@ -86,10 +89,10 @@ public class OperatorServiceImpl implements OperatorService<Operator, Long> {
         }
     }
 
-    private void changeStatus(Operator operator, String statusCode) {
+    private Operator changeStatus(Operator operator, String statusCode) {
         OperatorStatus status = operatorStatusService.getRequiredByCode(statusCode);
         operator.setOperatorStatus(status);
-        operatorRepository.save(operator);
+        return operatorRepository.save(operator);
     }
 
     @Override
@@ -148,7 +151,11 @@ public class OperatorServiceImpl implements OperatorService<Operator, Long> {
         userAccount.setHashedPassword(passwordEncoder.encode(userAccount.getHashedPassword()));
         operator.setUserAccount(userAccount);
 
-        return operatorRepository.save(operator);
+        Operator newOperator = operatorRepository.save(operator);
+
+        operatorEventPublisher.publishCreated(newOperator);
+
+        return newOperator;
     }
 
     @Override
@@ -221,6 +228,7 @@ public class OperatorServiceImpl implements OperatorService<Operator, Long> {
         Operator operator = findByIdOrThrow(id);
         validateOperatorOwner(authUser, operator);
         operatorRepository.delete(operator);
+        operatorEventPublisher.publishDeleted(id);
     }
 
     @Override
@@ -234,7 +242,9 @@ public class OperatorServiceImpl implements OperatorService<Operator, Long> {
                 "PENDING_APPROVAL",
                 "Só é possível aprovar ou reprovar um operador que está aguardando aprovação.");
 
-        changeStatus(operator, approved ? "APPROVED" : "REJECTED");
+        Operator updatedOperator = changeStatus(operator, approved ? "APPROVED" : "REJECTED");
+
+        operatorEventPublisher.publishUpdated(updatedOperator);
     }
 
     @Override
@@ -248,7 +258,9 @@ public class OperatorServiceImpl implements OperatorService<Operator, Long> {
                 "REJECTED",
                 "Só é possível reaplicar um operador que está rejeitado.");
 
-        changeStatus(operator, "PENDING_APPROVAL");
+        Operator updatedOperator = changeStatus(operator, "PENDING_APPROVAL");
+
+        operatorEventPublisher.publishUpdated(updatedOperator);
     }
 
 }

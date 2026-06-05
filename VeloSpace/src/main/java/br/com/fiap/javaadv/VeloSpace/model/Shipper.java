@@ -33,7 +33,7 @@ public class Shipper {
     @Column(name = "name", nullable = false, length = 255)
     private @Getter @Setter String name;
 
-    @OneToOne(cascade = CascadeType.PERSIST)
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_account_id", nullable = false, unique = true)
     private @Getter @Setter UserAccount userAccount;
 
