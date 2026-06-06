@@ -32,7 +32,7 @@ public class ShipperApiController {
     public ResponseEntity<ShipperResponseDTO> findByMe(
             @AuthenticationPrincipal JwtUserData authUser) {
 
-        Shipper shipper = shipperService.findById(authUser.userId(), authUser);
+        Shipper shipper = shipperService.findByUserAccountId(authUser.userId(), authUser);
         return ResponseEntity.ok(ShipperResponseDTO.from(shipper));
     }
 

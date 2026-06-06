@@ -31,11 +31,11 @@ public class Operator {
     @Column(name = "name", nullable = false, length = 255)
     private @Getter @Setter String name;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_account_id", nullable = false, unique = true)
     private @Getter @Setter UserAccount userAccount;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "operator_status_id", nullable = false)
     private @Getter @Setter OperatorStatus operatorStatus;
 
