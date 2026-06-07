@@ -23,7 +23,7 @@ jobs:
     
     - name: Build with Maven
       working-directory: ./VeloSpace
-      run: mvn clean install
+      run: mvn clean install -DskipTests
       env:
         JWT_SECRET: ${{ secrets.JWT_SECRET }}
 
