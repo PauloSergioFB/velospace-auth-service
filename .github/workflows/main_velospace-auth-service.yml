@@ -44,4 +44,4 @@ jobs:
         app-name: 'velospace-auth-service'
         slot-name: 'production'
         publish-profile: ${{ secrets.AzureAppService_PublishProfile_82c6f50f367e44fa9c53dd9c98c3e961 }}
-        package: '${{ github.workspace }}/target/*.jar'
+        package: '${{ github.workspace }}/VeloSpace/target/*.jar'
