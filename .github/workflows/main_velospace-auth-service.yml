@@ -23,7 +23,21 @@ jobs:
     
     - name: Build with Maven
       run: mvn clean install
+      env:
+        JWT_SECRET: ${{ secrets.JWT_SECRET }}
 
+        DB_URL: ${{ secrets.DB_URL }}
+        DB_USERNAME: ${{ secrets.DB_USERNAME }}
+        DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        
+        ACTIVEMQ_BROKER_URL: ${{ secrets.ACTIVEMQ_BROKER_URL }}
+        ACTIVEMQ_USER: ${{ secrets.ACTIVEMQ_USER }}
+        ACTIVEMQ_PASSWORD: ${{ secrets.ACTIVEMQ_PASSWORD }}
+        
+        INTERNAL_API_KEY: ${{ secrets.INTERNAL_API_KEY }}
+        
+        OPERATION_SERVICE_URL: ${{ secrets.OPERATION_SERVICE_URL }}
+        
     - name: Deploy to Azure Web App
       uses: azure/webapps-deploy@v2
       with: 
