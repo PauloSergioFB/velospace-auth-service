@@ -15,7 +15,7 @@ public record OperatorUpdatedEvent(
             return null;
 
         return OperatorUpdatedEvent.builder()
-                .launchProviderId(operator.getOperatorId())
+                .operatorId(operator.getOperatorId())
                 .launchProviderId(operator.getLaunchProvider().getLaunchProviderId())
                 .userAccountId(operator.getUserAccount().getUserAccountId())
                 .operatorStatusCode(operator.getOperatorStatus().getCode())

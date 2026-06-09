@@ -17,7 +17,7 @@ public class LaunchProviderEventPublisher {
     private final JmsTemplate jmsTemplate;
 
     public void publishCreated(LaunchProvider launchProvider) {
-        log.info("Testando...");
+        log.info("Enviando mensagem launchProvider criado id: {}", launchProvider.getLaunchProviderId());
 
         jmsTemplate.convertAndSend(
                 "launch_provider.created",
@@ -25,6 +25,8 @@ public class LaunchProviderEventPublisher {
     }
 
     public void publishDeleted(Long launchProviderId) {
+        log.info("Enviando mensagem launchProvider deletado id: {}", launchProviderId);
+
         jmsTemplate.convertAndSend(
                 "launch_provider.deleted",
                 new LaunchProviderDeletedEvent(launchProviderId));
