@@ -8,8 +8,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import br.com.fiap.javaadv.VeloSpace.infrastructure.enums.SatelliteSortField;
 import br.com.fiap.javaadv.VeloSpace.infrastructure.security.JwtUserData;
 import br.com.fiap.javaadv.VeloSpace.model.Shipper;
+import br.com.fiap.javaadv.VeloSpace.presentation.transferObjects.PageResponseDTO;
+import br.com.fiap.javaadv.VeloSpace.presentation.transferObjects.Satellite.SatelliteItemResponseDTO;
 import br.com.fiap.javaadv.VeloSpace.presentation.transferObjects.Shipper.CreateShipperDTO;
 import br.com.fiap.javaadv.VeloSpace.presentation.transferObjects.Shipper.ShipperResponseDTO;
 import br.com.fiap.javaadv.VeloSpace.presentation.transferObjects.UserAccount.ChangePasswordDTO;
@@ -44,6 +47,21 @@ public class ShipperApiController {
 
         Shipper shipper = shipperService.findById(id, authUser);
         return ResponseEntity.ok(ShipperResponseDTO.from(shipper));
+    }
+
+    @GetMapping("/{id}/satellites")
+    @Operation(summary = "Listar satellites do Shipper", description = "Retorna uma página com os satellites associados ao Shipper identificado pelo ID.")
+    public ResponseEntity<PageResponseDTO<SatelliteItemResponseDTO>> findAllShipperSatellites(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int items,
+            @RequestParam(defaultValue = "operatorId") SatelliteSortField sortBy,
+            @RequestParam(defaultValue = "asc") String direction,
+            @AuthenticationPrincipal JwtUserData authUser) {
+
+        PageResponseDTO<SatelliteItemResponseDTO> satellites = shipperService
+                .findSatellitesFromShipper(id, page, items, sortBy, direction, authUser);
+        return ResponseEntity.ok(satellites);
     }
 
     @PostMapping

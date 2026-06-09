@@ -20,6 +20,8 @@ import br.com.fiap.javaadv.VeloSpace.service.UserRole.UserRoleService;
 import br.com.fiap.javaadv.VeloSpace.service.UserValidation.UserValidationService;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -95,13 +97,15 @@ public class OperatorServiceImpl implements OperatorService<Operator, Long> {
         return operatorRepository.save(operator);
     }
 
-    private Operator findByUserAccountIdOrThrow(Long id) {
+    @Cacheable(value = "operators-by-user", key = "#id")
+    public Operator findByUserAccountIdOrThrow(Long id) {
         return operatorRepository.findByUserAccount_UserAccountId(id)
                 .orElseThrow(() -> new NotFoundException(
                         "Operador não encontrado."));
     }
 
     @Override
+    @Cacheable(value = "operators", key = "#id")
     public Operator findByIdOrThrow(Long id) {
         return operatorRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(
@@ -141,6 +145,7 @@ public class OperatorServiceImpl implements OperatorService<Operator, Long> {
     }
 
     @Override
+    @CacheEvict(value = { "operators", "operators-by-user" }, allEntries = true)
     public Operator create(Operator operator) {
         UserAccount userAccount = operator.getUserAccount();
 
@@ -172,6 +177,7 @@ public class OperatorServiceImpl implements OperatorService<Operator, Long> {
     }
 
     @Override
+    @CacheEvict(value = { "operators", "operators-by-user" }, allEntries = true)
     public Operator updateById(Long id, Operator operator, JwtUserData authUser) {
         Operator existing = findByIdOrThrow(id);
 
@@ -237,6 +243,7 @@ public class OperatorServiceImpl implements OperatorService<Operator, Long> {
     }
 
     @Override
+    @CacheEvict(value = { "operators", "operators-by-user" }, allEntries = true)
     public void deleteById(Long id, JwtUserData authUser) {
         Operator operator = findByIdOrThrow(id);
         validateOperatorOwner(authUser, operator);

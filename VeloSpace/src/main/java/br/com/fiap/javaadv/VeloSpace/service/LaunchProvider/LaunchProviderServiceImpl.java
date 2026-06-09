@@ -1,7 +1,9 @@
 package br.com.fiap.javaadv.VeloSpace.service.LaunchProvider;
 
+import br.com.fiap.javaadv.VeloSpace.infrastructure.clients.operationService.OperationServiceClient;
 import br.com.fiap.javaadv.VeloSpace.infrastructure.enums.LaunchProviderSortField;
 import br.com.fiap.javaadv.VeloSpace.infrastructure.enums.Role;
+import br.com.fiap.javaadv.VeloSpace.infrastructure.enums.SatelliteSortField;
 import br.com.fiap.javaadv.VeloSpace.infrastructure.exceptions.FieldValidationException;
 import br.com.fiap.javaadv.VeloSpace.infrastructure.exceptions.ForbiddenException;
 import br.com.fiap.javaadv.VeloSpace.infrastructure.exceptions.NotFoundException;
@@ -11,10 +13,14 @@ import br.com.fiap.javaadv.VeloSpace.model.LaunchProvider;
 import br.com.fiap.javaadv.VeloSpace.model.UserAccount;
 import br.com.fiap.javaadv.VeloSpace.model.UserRole;
 import br.com.fiap.javaadv.VeloSpace.model.repository.LaunchProviderRepository;
+import br.com.fiap.javaadv.VeloSpace.presentation.transferObjects.PageResponseDTO;
+import br.com.fiap.javaadv.VeloSpace.presentation.transferObjects.Satellite.SatelliteItemResponseDTO;
 import br.com.fiap.javaadv.VeloSpace.service.UserRole.UserRoleService;
 import br.com.fiap.javaadv.VeloSpace.service.UserValidation.UserValidationService;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -37,6 +43,8 @@ public class LaunchProviderServiceImpl implements LaunchProviderService<LaunchPr
 
     private final LaunchProviderEventPublisher launchProviderEventPublisher;
 
+    private final OperationServiceClient operationServiceClient;
+
     private void validateLaunchProviderOwner(JwtUserData authUser, LaunchProvider launchProvider) {
         if (!Objects.equals(authUser.userId(), launchProvider.getUserAccount().getUserAccountId())) {
             throw new ForbiddenException(
@@ -44,13 +52,15 @@ public class LaunchProviderServiceImpl implements LaunchProviderService<LaunchPr
         }
     }
 
-    private LaunchProvider findByUserAccountIdOrThrow(Long id) {
+    @Cacheable(value = "launch-providers-by-user", key = "#userAccountId")
+    public LaunchProvider findByUserAccountIdOrThrow(Long id) {
         return launchProviderRepository.findByUserAccount_UserAccountId(id)
                 .orElseThrow(() -> new NotFoundException(
                         "Provedora de lançamento não encontrada."));
     }
 
     @Override
+    @Cacheable(value = "launch-providers", key = "#id")
     public LaunchProvider findByIdOrThrow(Long id) {
         return launchProviderRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(
@@ -82,6 +92,7 @@ public class LaunchProviderServiceImpl implements LaunchProviderService<LaunchPr
     }
 
     @Override
+    @CacheEvict(value = { "launch-providers", "launch-providers-by-user" }, allEntries = true)
     public LaunchProvider create(LaunchProvider launchProvider) {
         UserAccount userAccount = launchProvider.getUserAccount();
 
@@ -108,6 +119,7 @@ public class LaunchProviderServiceImpl implements LaunchProviderService<LaunchPr
     }
 
     @Override
+    @CacheEvict(value = { "launch-providers", "launch-providers-by-user" }, allEntries = true)
     public LaunchProvider updateById(Long id, LaunchProvider launchProvider, JwtUserData authUser) {
         LaunchProvider existing = findByIdOrThrow(id);
 
@@ -170,11 +182,25 @@ public class LaunchProviderServiceImpl implements LaunchProviderService<LaunchPr
     }
 
     @Override
+    @CacheEvict(value = { "launch-providers", "launch-providers-by-user" }, allEntries = true)
     public void deleteById(Long id, JwtUserData authUser) {
         LaunchProvider launchProvider = findByIdOrThrow(id);
         validateLaunchProviderOwner(authUser, launchProvider);
         launchProviderRepository.delete(launchProvider);
         launchProviderEventPublisher.publishDeleted(id);
+    }
+
+    @Override
+    public PageResponseDTO<SatelliteItemResponseDTO> findSatellitesFromLaunchProvider(
+            Long id,
+            int page, int items, SatelliteSortField sortBy, String direction,
+            JwtUserData authUser) {
+
+        LaunchProvider existing = findByIdOrThrow(id);
+
+        validateLaunchProviderOwner(authUser, existing);
+
+        return operationServiceClient.findByLaunchProviderId(id, page, items, sortBy, direction);
     }
 
 }

@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 
 import br.com.fiap.javaadv.VeloSpace.infrastructure.message.event.OperatorCreatedEvent;
 import br.com.fiap.javaadv.VeloSpace.infrastructure.message.event.OperatorDeletedEvent;
+import br.com.fiap.javaadv.VeloSpace.infrastructure.message.event.OperatorUpdatedEvent;
 import br.com.fiap.javaadv.VeloSpace.model.Operator;
 import lombok.RequiredArgsConstructor;
 
@@ -23,7 +24,7 @@ public class OperatorEventPublisher {
     public void publishUpdated(Operator updatedOperator) {
         jmsTemplate.convertAndSend(
                 "operator.updated",
-                OperatorCreatedEvent.from(updatedOperator));
+                OperatorUpdatedEvent.from(updatedOperator));
     }
 
     public void publishDeleted(Long operatorId) {

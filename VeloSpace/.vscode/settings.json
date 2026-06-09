@@ -4,14 +4,17 @@
         "cnpj",
         "csrf",
         "datasource",
+        "Dskip",
         "fiap",
         "hateoas",
+        "hikari",
         "jackson",
         "javaadv",
         "jdbc",
         "mongodb",
         "nullable",
         "springdoc",
-        "springframework"
+        "springframework",
+        "temurin"
     ]
 }

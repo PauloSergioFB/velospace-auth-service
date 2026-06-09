@@ -1,5 +1,6 @@
 package br.com.fiap.javaadv.VeloSpace.service.OperatorStatus;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import br.com.fiap.javaadv.VeloSpace.infrastructure.exceptions.NotFoundException;
@@ -14,6 +15,7 @@ public class OperatorStatusServiceImpl implements OperatorStatusService<Operator
     private final OperatorStatusRepository operatorStatusRepository;
 
     @Override
+    @Cacheable(value = "operator-statuses", key = "#code")
     public OperatorStatus findByCode(String code) {
         return operatorStatusRepository.findByCode(code)
                 .orElseThrow(() -> new NotFoundException(
@@ -21,6 +23,7 @@ public class OperatorStatusServiceImpl implements OperatorStatusService<Operator
     }
 
     @Override
+    @Cacheable(value = "operator-statuses-required", key = "#code")
     public OperatorStatus getRequiredByCode(String code) {
         return operatorStatusRepository.findByCode(code)
                 .orElseThrow(() -> new IllegalStateException(

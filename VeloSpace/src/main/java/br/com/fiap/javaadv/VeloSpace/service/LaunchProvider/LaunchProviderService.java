@@ -3,7 +3,10 @@ package br.com.fiap.javaadv.VeloSpace.service.LaunchProvider;
 import org.springframework.data.domain.Page;
 
 import br.com.fiap.javaadv.VeloSpace.infrastructure.enums.LaunchProviderSortField;
+import br.com.fiap.javaadv.VeloSpace.infrastructure.enums.SatelliteSortField;
 import br.com.fiap.javaadv.VeloSpace.infrastructure.security.JwtUserData;
+import br.com.fiap.javaadv.VeloSpace.presentation.transferObjects.PageResponseDTO;
+import br.com.fiap.javaadv.VeloSpace.presentation.transferObjects.Satellite.SatelliteItemResponseDTO;
 
 public interface LaunchProviderService<T, ID> {
 
@@ -22,5 +25,10 @@ public interface LaunchProviderService<T, ID> {
     void updatePasswordById(ID id, String currentPassword, String newPassword, JwtUserData authUser);
 
     void deleteById(ID id, JwtUserData authUser);
+
+    PageResponseDTO<SatelliteItemResponseDTO> findSatellitesFromLaunchProvider(
+            Long id,
+            int page, int items, SatelliteSortField sortBy, String direction,
+            JwtUserData authUser);
 
 }

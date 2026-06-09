@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import br.com.fiap.javaadv.VeloSpace.infrastructure.enums.LaunchProviderSortField;
 import br.com.fiap.javaadv.VeloSpace.infrastructure.enums.OperatorSortField;
+import br.com.fiap.javaadv.VeloSpace.infrastructure.enums.SatelliteSortField;
 import br.com.fiap.javaadv.VeloSpace.infrastructure.security.JwtUserData;
 import br.com.fiap.javaadv.VeloSpace.model.LaunchProvider;
 import br.com.fiap.javaadv.VeloSpace.model.Operator;
@@ -19,6 +20,7 @@ import br.com.fiap.javaadv.VeloSpace.presentation.transferObjects.LaunchProvider
 import br.com.fiap.javaadv.VeloSpace.presentation.transferObjects.LaunchProvider.LaunchProviderItemResponseDTO;
 import br.com.fiap.javaadv.VeloSpace.presentation.transferObjects.LaunchProvider.LaunchProviderResponseDTO;
 import br.com.fiap.javaadv.VeloSpace.presentation.transferObjects.Operator.OperatorItemResponseDTO;
+import br.com.fiap.javaadv.VeloSpace.presentation.transferObjects.Satellite.SatelliteItemResponseDTO;
 import br.com.fiap.javaadv.VeloSpace.presentation.transferObjects.UserAccount.ChangePasswordDTO;
 import br.com.fiap.javaadv.VeloSpace.service.LaunchProvider.LaunchProviderService;
 import br.com.fiap.javaadv.VeloSpace.service.Operator.OperatorService;
@@ -84,6 +86,21 @@ public class LaunchProviderApiController {
                 id, page, items, sortBy, direction, authUser);
         return ResponseEntity.ok(PageResponseDTO.from(
                 operators.map(OperatorItemResponseDTO::from)));
+    }
+
+    @GetMapping("/{id}/satellites")
+    @Operation(summary = "Listar satélites do Launch Provider", description = "Retorna uma página com os satélites associados ao Launch Provider informado pelo ID.")
+    public ResponseEntity<PageResponseDTO<SatelliteItemResponseDTO>> findAllLaunchProviderSatellites(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int items,
+            @RequestParam(defaultValue = "operatorId") SatelliteSortField sortBy,
+            @RequestParam(defaultValue = "asc") String direction,
+            @AuthenticationPrincipal JwtUserData authUser) {
+
+        PageResponseDTO<SatelliteItemResponseDTO> satellites = launchProviderService
+                .findSatellitesFromLaunchProvider(id, page, items, sortBy, direction, authUser);
+        return ResponseEntity.ok(satellites);
     }
 
     @PostMapping

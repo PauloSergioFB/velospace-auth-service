@@ -2,12 +2,16 @@ package br.com.fiap.javaadv.VeloSpace.service.Shipper;
 
 import java.util.Objects;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import br.com.caelum.stella.validation.CPFValidator;
 import br.com.caelum.stella.validation.CNPJValidator;
+import br.com.fiap.javaadv.VeloSpace.infrastructure.clients.operationService.OperationServiceClient;
 import br.com.fiap.javaadv.VeloSpace.infrastructure.enums.Role;
+import br.com.fiap.javaadv.VeloSpace.infrastructure.enums.SatelliteSortField;
 import br.com.fiap.javaadv.VeloSpace.infrastructure.enums.ShipperType;
 import br.com.fiap.javaadv.VeloSpace.infrastructure.exceptions.FieldValidationException;
 import br.com.fiap.javaadv.VeloSpace.infrastructure.exceptions.ForbiddenException;
@@ -18,6 +22,8 @@ import br.com.fiap.javaadv.VeloSpace.model.Shipper;
 import br.com.fiap.javaadv.VeloSpace.model.UserAccount;
 import br.com.fiap.javaadv.VeloSpace.model.UserRole;
 import br.com.fiap.javaadv.VeloSpace.model.repository.ShipperRepository;
+import br.com.fiap.javaadv.VeloSpace.presentation.transferObjects.PageResponseDTO;
+import br.com.fiap.javaadv.VeloSpace.presentation.transferObjects.Satellite.SatelliteItemResponseDTO;
 import br.com.fiap.javaadv.VeloSpace.service.UserRole.UserRoleService;
 import br.com.fiap.javaadv.VeloSpace.service.UserValidation.UserValidationService;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +41,8 @@ public class ShipperServiceImpl implements ShipperService<Shipper, Long> {
     private final PasswordEncoder passwordEncoder;
 
     private final ShipperEventPublisher shipperEventPublisher;
+
+    private final OperationServiceClient operationServiceClient;
 
     private void validateShipperOwner(JwtUserData authUser, Shipper shipper) {
         if (!Objects.equals(authUser.userId(), shipper.getUserAccount().getUserAccountId())) {
@@ -87,6 +95,7 @@ public class ShipperServiceImpl implements ShipperService<Shipper, Long> {
     }
 
     @Override
+    @Cacheable(value = "shippers", key = "#id")
     public Shipper findByIdOrThrow(Long id) {
         return shipperRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException(
@@ -94,6 +103,7 @@ public class ShipperServiceImpl implements ShipperService<Shipper, Long> {
     }
 
     @Override
+    @Cacheable(value = "shippers-by-user", key = "#id")
     public Shipper findByUserAccountIdOrThrow(Long id) {
         return shipperRepository.findByUserAccount_UserAccountId(id)
                 .orElseThrow(() -> new NotFoundException(
@@ -115,6 +125,7 @@ public class ShipperServiceImpl implements ShipperService<Shipper, Long> {
     }
 
     @Override
+    @CacheEvict(value = { "shippers", "shippers-by-user" }, allEntries = true)
     public Shipper create(Shipper shipper) {
         validateDocument(
                 shipper.getType(),
@@ -140,6 +151,7 @@ public class ShipperServiceImpl implements ShipperService<Shipper, Long> {
     }
 
     @Override
+    @CacheEvict(value = { "shippers", "shippers-by-user" }, allEntries = true)
     public Shipper updateById(Long id, Shipper shipper, JwtUserData authUser) {
         Shipper existing = findByIdOrThrow(id);
 
@@ -201,11 +213,25 @@ public class ShipperServiceImpl implements ShipperService<Shipper, Long> {
     }
 
     @Override
+    @CacheEvict(value = { "shippers", "shippers-by-user" }, allEntries = true)
     public void deleteById(Long id, JwtUserData authUser) {
         Shipper shipper = findByIdOrThrow(id);
         validateShipperOwner(authUser, shipper);
         shipperRepository.delete(shipper);
         shipperEventPublisher.publishDeleted(id);
+    }
+
+    @Override
+    public PageResponseDTO<SatelliteItemResponseDTO> findSatellitesFromShipper(
+            Long id,
+            int page, int items, SatelliteSortField sortBy, String direction,
+            JwtUserData authUser) {
+
+        Shipper existing = findByIdOrThrow(id);
+
+        validateShipperOwner(authUser, existing);
+
+        return operationServiceClient.findByShipperId(id, page, items, sortBy, direction);
     }
 
 }

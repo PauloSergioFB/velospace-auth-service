@@ -1,5 +1,6 @@
 package br.com.fiap.javaadv.VeloSpace.service.UserRole;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import br.com.fiap.javaadv.VeloSpace.infrastructure.enums.Role;
@@ -14,6 +15,8 @@ public class UserRoleServiceImpl implements UserRoleService<UserRole, Long> {
 
     private final UserRoleRepository userRoleRepository;
 
+    @Override
+    @Cacheable(value = "user-roles", key = "#code")
     public UserRole findByCode(Role code) {
         return userRoleRepository.findByCode(code)
                 .orElseThrow(() -> new NotFoundException(
@@ -21,6 +24,7 @@ public class UserRoleServiceImpl implements UserRoleService<UserRole, Long> {
     }
 
     @Override
+    @Cacheable(value = "user-roles-required", key = "#code")
     public UserRole getRequiredByCode(Role code) {
         return userRoleRepository.findByCode(code)
                 .orElseThrow(() -> new IllegalStateException(
